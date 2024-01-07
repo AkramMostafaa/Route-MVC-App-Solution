@@ -11,19 +11,19 @@ namespace Route_MVC_App.PL.Controllers
 {
     public class DepartmentController : Controller
     {
-        private readonly IDepartmentRepository _departmentRepo;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public DepartmentController(IDepartmentRepository departmentRepo,IMapper mapper)
+        public DepartmentController( IUnitOfWork unitOfWork,IMapper mapper)
         {
-            _departmentRepo = departmentRepo;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
         [HttpGet]  // GET : /Department/Index
         public IActionResult Index()
         {
-            var departments = _departmentRepo.GetAll();
+            var departments = _unitOfWork.DepartmentRepository.GetAll();
 
             var mappedDepartment= _mapper.Map<IEnumerable<Department>,IEnumerable<DepartmentViewModel>>(departments);
             return View(mappedDepartment);
@@ -41,7 +41,9 @@ namespace Route_MVC_App.PL.Controllers
             {
                 var mappedDepartment = _mapper.Map<DepartmentViewModel, Department>(departmentVM);
 
-                var count =  _departmentRepo.Add(mappedDepartment);
+                _unitOfWork.DepartmentRepository.Add(mappedDepartment);
+                var count = _unitOfWork.Complete();
+
                 if (count > 0)
                     return RedirectToAction(nameof(Index));
 
@@ -54,7 +56,7 @@ namespace Route_MVC_App.PL.Controllers
         {
             if (!id.HasValue)
                 return BadRequest();
-            var department = _departmentRepo.Get(id.Value);
+            var department = _unitOfWork.DepartmentRepository.Get(id.Value);
             var mappedDepartment = _mapper.Map<Department, DepartmentViewModel>(department);
 
 
@@ -90,7 +92,8 @@ namespace Route_MVC_App.PL.Controllers
                 {
                     var mappedDepartment = _mapper.Map<DepartmentViewModel, Department>(departmentVM);
 
-                    _departmentRepo.Update(mappedDepartment);
+                    _unitOfWork.DepartmentRepository.Update(mappedDepartment);
+                    _unitOfWork.Complete();
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
@@ -120,7 +123,9 @@ namespace Route_MVC_App.PL.Controllers
                 try
                 {
                     var mappedDepartment = _mapper.Map<DepartmentViewModel,Department>(departmentVM);
-                    _departmentRepo.Delete(mappedDepartment);
+                    _unitOfWork.DepartmentRepository.Delete(mappedDepartment);
+                    _unitOfWork.Complete();
+
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)

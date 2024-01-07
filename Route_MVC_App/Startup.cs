@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Route.BLL;
 using Route.BLL.Interfaces;
 using Route.BLL.Repositories;
 using Route.DAL.Data;
@@ -30,8 +31,8 @@ namespace Route_MVC_App
         {
             services.AddControllersWithViews();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-            services.AddScoped<IDepartmentRepository, DepartmentRepository>();
-            services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+
+            services.AddScoped(typeof(IUnitOfWork), typeof(UnitOfWork));
             services.AddAutoMapper(M=>M.AddProfile(new MappingProfile()));
 
             services.AddDbContext<AppDbContext>(options =>

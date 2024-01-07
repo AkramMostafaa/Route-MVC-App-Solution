@@ -12,13 +12,15 @@ namespace Route_MVC_App.PL.Controllers
 {
     public class EmployeeController : Controller
     {
-        private readonly IEmployeeRepository _employeeRepo;
+        private readonly IUnitOfWork _unitOfWork;
+
+        //private readonly IEmployeeRepository _employeeRepo;
         private readonly IMapper _mapper;
 
 
-        public EmployeeController(IEmployeeRepository employeeRepo,IMapper mapper)
+        public EmployeeController(IUnitOfWork unitOfWork,IMapper mapper)
         {
-            _employeeRepo = employeeRepo;
+            _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
@@ -28,9 +30,9 @@ namespace Route_MVC_App.PL.Controllers
         {
             var employees = Enumerable.Empty<Employee>();
             if (string.IsNullOrEmpty(searchInp))
-                 employees = _employeeRepo.GetAll();  
+                 employees = _unitOfWork.EmployeeRepository.GetAll();  
             else 
-                 employees= _employeeRepo.SearchByName(searchInp.ToLower());
+                 employees= _unitOfWork.EmployeeRepository.SearchByName(searchInp.ToLower());
 
             var mappedEmps = _mapper.Map<IEnumerable<Employee>, IEnumerable<EmployeeViewModel>>(employees);
 
@@ -51,14 +53,16 @@ namespace Route_MVC_App.PL.Controllers
             if (ModelState.IsValid)
             {
                 var mappedEmployee = _mapper.Map<EmployeeViewModel, Employee>(employeeVM);
-               var count =  _employeeRepo.Add(mappedEmployee);
+                _unitOfWork.EmployeeRepository.Add(mappedEmployee);
 
-                if (count > 0)
-                    TempData["Message"] = "Employee Created Successfully";
+                //if (count > 0)
+                //    TempData["Message"] = "Employee Created Successfully";
 
-                else
-                    TempData["Message"] = "An Error Has Occured, Employee Not Created :(";
-                
+                //else
+                //    TempData["Message"] = "An Error Has Occured, Employee Not Created :(";
+
+
+                _unitOfWork.Complete();
                 return RedirectToAction(nameof(Index));
 
             }
@@ -70,7 +74,7 @@ namespace Route_MVC_App.PL.Controllers
         {
             if (!id.HasValue)
                 return BadRequest();
-            var employee= _employeeRepo.Get(id.Value);
+            var employee= _unitOfWork.EmployeeRepository.Get(id.Value);
             var mappedEmp = _mapper.Map<Employee, EmployeeViewModel>(employee);
             if (employee == null)
                 return NotFound();
@@ -97,7 +101,9 @@ namespace Route_MVC_App.PL.Controllers
             try
             {
                 var mappedEmployee = _mapper.Map<EmployeeViewModel, Employee>(employeeVM);
-                _employeeRepo.Update(mappedEmployee);
+                _unitOfWork.EmployeeRepository.Update(mappedEmployee);
+                _unitOfWork.Complete();
+
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
@@ -125,7 +131,9 @@ namespace Route_MVC_App.PL.Controllers
             try
             {
                 var mappedEmployee = _mapper.Map<EmployeeViewModel, Employee>(employeeVM);
-                _employeeRepo.Delete(mappedEmployee);
+                _unitOfWork.EmployeeRepository.Delete(mappedEmployee);
+                _unitOfWork.Complete();
+
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
