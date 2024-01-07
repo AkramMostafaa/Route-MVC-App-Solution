@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Route.BLL.Interfaces;
 using Route.BLL.Repositories;
 using Route.DAL.Data;
+using Route_MVC_App.PL.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,6 +32,7 @@ namespace Route_MVC_App
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddScoped<IDepartmentRepository, DepartmentRepository>();
             services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+            services.AddAutoMapper(M=>M.AddProfile(new MappingProfile()));
 
             services.AddDbContext<AppDbContext>(options =>
             {

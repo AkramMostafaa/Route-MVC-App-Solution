@@ -1,25 +1,32 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Route.BLL.Interfaces;
 using Route.DAL.Models;
+using Route_MVC_App.PL.ViewModels;
 using System;
+using System.Collections.Generic;
 
 namespace Route_MVC_App.PL.Controllers
 {
     public class DepartmentController : Controller
     {
         private readonly IDepartmentRepository _departmentRepo;
+        private readonly IMapper _mapper;
 
-        public DepartmentController(IDepartmentRepository departmentRepo)
+        public DepartmentController(IDepartmentRepository departmentRepo,IMapper mapper)
         {
             _departmentRepo = departmentRepo;
+            _mapper = mapper;
         }
 
         [HttpGet]  // GET : /Department/Index
         public IActionResult Index()
         {
             var departments = _departmentRepo.GetAll();
-            return View(departments);
+
+            var mappedDepartment= _mapper.Map<IEnumerable<Department>,IEnumerable<DepartmentViewModel>>(departments);
+            return View(mappedDepartment);
         }
 
       // /Department/Create
@@ -28,16 +35,18 @@ namespace Route_MVC_App.PL.Controllers
             return View();
         }
         [HttpPost]
-        public IActionResult Create(Department department)
+        public IActionResult Create(DepartmentViewModel departmentVM)
         {
             if (ModelState.IsValid) //Server Side Validation
             {
-                var count =  _departmentRepo.Add(department);
+                var mappedDepartment = _mapper.Map<DepartmentViewModel, Department>(departmentVM);
+
+                var count =  _departmentRepo.Add(mappedDepartment);
                 if (count > 0)
                     return RedirectToAction(nameof(Index));
 
             }
-            return View(department);
+            return View(departmentVM);
         }
 
         [HttpGet] // Departments/Details/1
@@ -46,11 +55,13 @@ namespace Route_MVC_App.PL.Controllers
             if (!id.HasValue)
                 return BadRequest();
             var department = _departmentRepo.Get(id.Value);
+            var mappedDepartment = _mapper.Map<Department, DepartmentViewModel>(department);
+
 
             if (department is null)
                 return NotFound();
 
-            return View(viewName,department);
+            return View(viewName,mappedDepartment);
 
         }
 
@@ -69,15 +80,17 @@ namespace Route_MVC_App.PL.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit([FromRoute]int id,Department department)
+        public IActionResult Edit([FromRoute]int id,DepartmentViewModel departmentVM)
         {
-            if (id != department.Id)
+            if (id != departmentVM.Id)
                 return BadRequest();
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _departmentRepo.Update(department);
+                    var mappedDepartment = _mapper.Map<DepartmentViewModel, Department>(departmentVM);
+
+                    _departmentRepo.Update(mappedDepartment);
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
@@ -89,7 +102,7 @@ namespace Route_MVC_App.PL.Controllers
                 
             
             }
-            return View(department);
+            return View(departmentVM);
         }
 
         [HttpGet]
@@ -99,14 +112,15 @@ namespace Route_MVC_App.PL.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Delete([FromRoute] int id,Department department)
+        public IActionResult Delete([FromRoute] int id,DepartmentViewModel departmentVM)
         {
-            if(id != department.Id)
+            if(id != departmentVM.Id)
                 return BadRequest();
             if(ModelState.IsValid)
                 try
                 {
-                    _departmentRepo.Delete(department);
+                    var mappedDepartment = _mapper.Map<DepartmentViewModel,Department>(departmentVM);
+                    _departmentRepo.Delete(mappedDepartment);
                     return RedirectToAction(nameof(Index));
                 }
                 catch (Exception ex)
@@ -115,7 +129,7 @@ namespace Route_MVC_App.PL.Controllers
                     ModelState.AddModelError(string.Empty, ex.Message);
 
                 }
-            return View(department);
+            return View(departmentVM);
 
         }
     }

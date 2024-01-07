@@ -16,6 +16,11 @@ namespace Route.DAL.Data.Configurations
             builder.Property(E=>E.Salary)
                 .HasColumnType("decimal(18,2)");
 
+            builder.Property(E => E.Name)
+                .IsRequired(true)
+                .HasMaxLength(50);
+
+
         }
     }
 }
