@@ -2,6 +2,7 @@
 using Route.BLL.Interfaces;
 using Route.DAL.Models;
 using System;
+using System.Linq;
 
 namespace Route_MVC_App.PL.Controllers
 {
@@ -17,18 +18,16 @@ namespace Route_MVC_App.PL.Controllers
         }
 
 
-        [HttpGet] // /Employee/Index
-        public IActionResult Index()
+        //[HttpGet] // /Employee/Index
+        public IActionResult Index(string searchInp)
         {
-            //  Binding Through View's Dictionary : Transfer Data From Action to View   [One Way ]
+            var employees = Enumerable.Empty<Employee>();
+            if (string.IsNullOrEmpty(searchInp))
+                 employees = _employeeRepo.GetAll();  
+            else 
+                 employees= _employeeRepo.SearchByName(searchInp.ToLower());
 
-            // 1. ViewData 
-            ViewData["Message"] = "Hello View Data ";
-            // 2. ViewBag
-            ViewBag.Bag = "Hello View Bag";
-
-            var employees = _employeeRepo.GetAll();
-            return View(employees);
+                return View(employees);
         }
 
         [HttpGet]

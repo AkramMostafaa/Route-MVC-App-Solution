@@ -11,6 +11,8 @@ namespace Route.BLL.Interfaces
     {
         IQueryable<Employee> GetEmployeeByAddress(string address);
 
+        IQueryable<Employee> SearchByName(string name);
+
 
     }
 }
