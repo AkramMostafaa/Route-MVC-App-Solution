@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Route.BLL.Interfaces;
 using Route.DAL.Models;
+using Route_MVC_App.PL.Helpers;
 using Route_MVC_App.PL.ViewModels;
 using System;
 using System.Collections;
@@ -52,6 +53,7 @@ namespace Route_MVC_App.PL.Controllers
         {
             if (ModelState.IsValid)
             {
+              employeeVM.ImageName=  DocumentSetting.UploadFile(employeeVM.Image, "images");
                 var mappedEmployee = _mapper.Map<EmployeeViewModel, Employee>(employeeVM);
                 _unitOfWork.EmployeeRepository.Add(mappedEmployee);
 
@@ -132,7 +134,9 @@ namespace Route_MVC_App.PL.Controllers
             {
                 var mappedEmployee = _mapper.Map<EmployeeViewModel, Employee>(employeeVM);
                 _unitOfWork.EmployeeRepository.Delete(mappedEmployee);
-                _unitOfWork.Complete();
+              var count =   _unitOfWork.Complete();
+                if (count > 0)
+                    DocumentSetting.DeleteFile(employeeVM.ImageName, "images");
 
                 return RedirectToAction(nameof(Index));
             }

@@ -27,7 +27,7 @@ namespace Route.DAL.Models
         public DateTime HireDate { get; set; }
         public bool IsDeleted { get; set; } = false;
         public DateTime CreationDate { get; set; }=DateTime.Now;
-
+        public string ImageName  { get; set; }
         public Department Department { get; set; }
 
         public int? DepartmentId { get; set; }

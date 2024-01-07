@@ -1,6 +1,7 @@
 ﻿using Route.DAL.Models;
 using System.ComponentModel.DataAnnotations;
 using System;
+using Microsoft.AspNetCore.Http;
 
 namespace Route_MVC_App.PL.ViewModels
 {
@@ -21,6 +22,8 @@ namespace Route_MVC_App.PL.ViewModels
         public decimal Salary { get; set; }
         [EmailAddress]
         public string Email { get; set; }
+        public IFormFile Image { get; set; }
+        public string ImageName { get; set; }
 
         [Display(Name = "Is Active")]
 

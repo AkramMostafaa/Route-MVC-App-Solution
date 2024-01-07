@@ -6,7 +6,7 @@
 <h1>Create New Employee</h1>
 <br />
 <br />
-<form asp-action="Create">
+<form asp-action="Create" enctype="multipart/form-data">
     <Partial name="PartialViews/CreateEditEmployeePartial" />
     <input type="submit" value="Create" class="btn-primary" /> |
     <a asp-controller="Employee" asp-action="Index" class="btn-light">Back To List</a>

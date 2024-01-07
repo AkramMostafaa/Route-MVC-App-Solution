@@ -20,7 +20,7 @@ namespace Route_MVC_App.PL.Helpers
 
             // 4. Save File AS Streams[Data Per Time ]
 
-            var fileStream = new FileStream(filePath, FileMode.Create); 
+         using var fileStream = new FileStream(filePath, FileMode.Create); 
 
             file.CopyTo(fileStream);
             return fileName;
