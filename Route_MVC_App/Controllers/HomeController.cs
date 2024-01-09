@@ -1,4 +1,5 @@
-﻿ using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Route_MVC_App.ViewModels;
 using System;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace Route_MVC_App.Controllers
 {
+    [Authorize]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -17,7 +19,7 @@ namespace Route_MVC_App.Controllers
         {
             _logger = logger;
         }
-
+        [HttpGet]
         public IActionResult Index()
         {
             return View();
@@ -27,6 +29,9 @@ namespace Route_MVC_App.Controllers
         {
             return View();
         }
+
+
+        [AllowAnonymous]
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

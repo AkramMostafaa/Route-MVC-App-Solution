@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,6 +11,7 @@ using Route.BLL;
 using Route.BLL.Interfaces;
 using Route.BLL.Repositories;
 using Route.DAL.Data;
+using Route.DAL.Models;
 using Route_MVC_App.PL.Helpers;
 using System;
 using System.Collections.Generic;
@@ -39,6 +42,36 @@ namespace Route_MVC_App
             {
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
             });
+
+            services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            {
+                options.Password.RequiredUniqueChars = 2;
+                options.Password.RequireDigit = true;
+                options.Password.RequireNonAlphanumeric = true;
+                options.Password.RequiredLength = 5;
+                options.Password.RequireUppercase = true;
+                options.Password.RequireLowercase = true;
+                options.User.RequireUniqueEmail = true;
+                options.Lockout.MaxFailedAccessAttempts = 3;
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(10);
+                options.Lockout.AllowedForNewUsers = true;
+            }).AddEntityFrameworkStores<AppDbContext>() 
+            .AddDefaultTokenProviders();
+
+            services.ConfigureApplicationCookie(config => {
+                config.LoginPath = "/Account/SignIn";
+                config.AccessDeniedPath="/Home/Error";
+                config.ExpireTimeSpan=TimeSpan.FromMinutes(10);
+
+                });
+
+            //services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            //    .AddCookie( config =>
+            //    {
+            //        config.LoginPath = "/Account/SignIn";
+            //        config.AccessDeniedPath = "/Home/Error";
+            //    });
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -58,10 +91,14 @@ namespace Route_MVC_App
             app.UseStaticFiles();
 
             app.UseRouting();
+			app.UseAuthentication();
 
-            app.UseAuthorization();
+			app.UseAuthorization();
 
-            app.UseEndpoints(endpoints =>
+
+
+
+			app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
                     name: "default",
