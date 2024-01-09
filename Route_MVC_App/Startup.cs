@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -13,6 +14,7 @@ using Route.BLL.Repositories;
 using Route.DAL.Data;
 using Route.DAL.Models;
 using Route_MVC_App.PL.Helpers;
+using Route_MVC_App.PL.Settings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -64,6 +66,23 @@ namespace Route_MVC_App
                 config.ExpireTimeSpan=TimeSpan.FromMinutes(10);
 
                 });
+            services.Configure<MailSettings>(Configuration.GetSection("MailSettings"));
+
+            services.AddTransient<IMailSettings, EmailSetting>();
+            services.Configure<TwillioSettings>(Configuration.GetSection("Twillio"));
+            services.AddTransient<ISmsService, SmsService>();
+
+            //services.AddAuthentication(o =>
+            //{
+            //    o.DefaultAuthenticateScheme = GoogleDefaults.AuthenticationScheme;
+            //    o.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+            //}).AddGoogle(o=>
+            //{
+            //    IConfiguration GoogleAuthSection = Configuration.GetSection("Authentication:Google");
+            //    o.ClientId = GoogleAuthSection["ClientId"];
+            //    o.ClientSecret = GoogleAuthSection["ClientSecret"];    
+
+            //});
 
             //services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
             //    .AddCookie( config =>

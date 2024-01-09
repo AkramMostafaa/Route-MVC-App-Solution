@@ -1,9 +1,13 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Route.DAL.Models;
 using Route_MVC_App.Controllers;
 using Route_MVC_App.PL.Helpers;
+using Route_MVC_App.PL.Settings;
 using Route_MVC_App.PL.ViewModels;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Route_MVC_App.PL.Controllers
@@ -12,12 +16,16 @@ namespace Route_MVC_App.PL.Controllers
     {
 		private readonly UserManager<ApplicationUser> _userManager;
 		private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IMailSettings _mailSettings;
+        private readonly ISmsService _smsService;
 
-		public AccountController(UserManager<ApplicationUser> userManager,SignInManager<ApplicationUser> signInManager)
+        public AccountController(UserManager<ApplicationUser> userManager,SignInManager<ApplicationUser> signInManager,IMailSettings mailSettings,ISmsService smsService)
         {
 			_userManager = userManager;
 			_signInManager = signInManager;
-		}
+            _mailSettings = mailSettings;
+            _smsService = smsService;
+        }
         #region Sign Up
 
 
@@ -119,7 +127,7 @@ namespace Route_MVC_App.PL.Controllers
             {
                 var user = await _userManager.FindByEmailAsync(model.Email);
                 if (user is not null)
-                {
+                { 
                     var token = _userManager.GeneratePasswordResetTokenAsync(user);  
                     var ResetPasswordUrl = Url.Action("ResetPassword","Account",new { email = model.Email,token = token},Request.Scheme);
                     var email = new Email() 
@@ -129,7 +137,7 @@ namespace Route_MVC_App.PL.Controllers
                         To=model.Email,
                         Body= ResetPasswordUrl
                     };
-                    EmailSetting.SendEmail(email);
+                    _mailSettings.SendMail(email);
                     return RedirectToAction(nameof(CheckYourInbox));
                 }
                 ModelState.AddModelError(string.Empty, "Invalid Email");
@@ -143,7 +151,60 @@ namespace Route_MVC_App.PL.Controllers
             return View();
         }
 
-        
+
+        [HttpPost]
+        public async Task<IActionResult> SendSMS(ForgetPasswordViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user is not null)
+                {
+                    var token = _userManager.GeneratePasswordResetTokenAsync(user);
+                    var ResetPasswordUrl = Url.Action("ResetPassword", "Account", new { email = model.Email, token = token }, Request.Scheme);
+                    var sms = new SmsMessage()
+                    {
+                        
+                        PhoneNumber=user.PhoneNumber,
+                        Body=ResetPasswordUrl
+                  
+                    };
+                    _smsService.Send(sms);
+                    return Ok("Check You Phone");
+                }
+                ModelState.AddModelError(string.Empty, "Invalid Email");
+            }
+            return View(model);
+        }
+
+
+        public IActionResult GoogleLogin()
+        {
+            var prop = new AuthenticationProperties
+            {
+                RedirectUri = Url.Action(nameof(GoogleResponse))
+
+            };
+            return Challenge(prop,GoogleDefaults.AuthenticationScheme);
+        }
+
+        public async Task<IActionResult> GoogleResponse()
+        {
+            var result=await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
+            var claims = result.Principal.Identities.FirstOrDefault().Claims.Select(claim =>
+
+                new {
+                    claim.Issuer,
+                    claim.OriginalIssuer,
+                    claim.Type,
+                    claim.Value
+
+                }
+                );
+            return RedirectToAction("Index", "Home");
+        }
+
+
         #endregion
 
 
